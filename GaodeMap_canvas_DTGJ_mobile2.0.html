@@ -1,0 +1,1463 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>初来驾到</title>
+    <base target="_blank"> <!--设置网页的超链接都是通过新窗口跳转-->
+    <link rel="stylesheet" href="https://cache.amap.com/lbs/static/main1119.css"/>
+    <link rel="stylesheet" href="https://cache.amap.com/lbs/static/jquery.range.css"/>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="css/build.css">
+    <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cache.amap.com/lbs/static/jquery.range.js"></script>
+    <!-- <script src="http://cache.amap.com/lbs/static/es5.min.js"></script> -->
+    <script src="https://webapi.amap.com/maps?v=1.4.2&key=64574c029e1331ce48526aaa7c5885f8"></script>
+    <!-- <script type="text/javascript">var AMapUIProtocol = 'https:';</script> -->
+    <script src="https://webapi.amap.com/ui/1.0/main.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="data/data.js"></script>
+    <style>
+        /*-------------------------------*/
+        /*             地图              */
+        /*-------------------------------*/
+        div#container {
+            width: 100%;
+            height: 100%
+        }
+
+        /*-------------------------------*/
+        /*             滑条              */
+        /*-------------------------------*/
+        div#huatiao {
+            position: absolute;
+            /*left: calc((100% - 525px)/2);*/
+            left: 40px;
+            width: 525px;
+            height: 75px;
+            bottom: 30px;
+            background-color: rgba(255, 255, 255, 1);
+            padding-left: 10px;
+            padding-right: 10px;
+            font-size: 12px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            line-height: 1
+        }
+
+        div.slider-container {
+            position: absolute;
+            bottom: 24px;
+        }
+
+        .theme-green .back-bar .pointer {
+            width: 20px;
+            height: 20px;
+            top: -7px;
+        }
+
+        .slider-container .back-bar .pointer-label {
+            top: -19px;
+        }
+
+        .slider-container .scale {
+            top: 7px;
+        }
+
+        /*
+        .slider-container .back-bar pointer-label {
+            top:-4px;
+            z-index: 1;
+            font-size:5px;
+        }
+        .slider-container .back-bar .pointer {
+            background: rgba(255,255,255,0);
+            width:17px;
+            height:17px;
+        }
+        */
+        /*-------------------------------*/
+        /*            POI搜索            */
+        /*-------------------------------*/
+        div#panel {
+            height: 100%;
+            overflow: auto;
+            width: 200px;
+            /*background-color: rgba(255,255,255,1);*/
+        }
+
+        #searchBar {
+            height: 30px;
+            background: #ccc;
+        }
+
+        #searchInput {
+            width: 100%;
+            height: 30px;
+            /*line-height: 30%;*/
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            border: none;
+            border-bottom: 1px solid #ccc;
+            padding: 0 5px;
+        }
+
+        #searchResults {
+            overflow: auto;
+            height: calc(100% - 30px);
+        }
+
+        .amap_lib_placeSearch,
+        .amap-ui-poi-picker-sugg-container {
+            border: none !important;
+        }
+
+        .amap_lib_placeSearch .poibox.highlight {
+            background-color: #CAE1FF;
+        }
+
+        .poi-more {
+            display: none !important;
+        }
+
+        /*-------------------------------*/
+        /*           侧边栏sidebar       */
+        /*-------------------------------*/
+        #wrapper {
+            -moz-transition: all 0.5s ease;
+            -o-transition: all 0.5s ease;
+            -webkit-transition: all 0.5s ease;
+            padding-left: 0;
+            transition: all 0.5s ease;
+            position: absolute;
+            z-index: 10000;
+        }
+
+        #wrapper.toggled {
+            padding-left: 200px;
+        }
+
+        #wrapper.toggled #sidebar-wrapper {
+            width: 200px;
+        }
+
+        #sidebar-wrapper {
+            -moz-transition: all 0.5s ease;
+            -o-transition: all 0.5s ease;
+            -webkit-transition: all 0.5s ease;
+            background-color: #FFF;
+            opacity: 0.8;
+            /*height: 100%;*/
+            height: calc(100% - 115px);
+            border-bottom-width: 0px;
+            left: 200px;
+            margin-left: -200px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            transition: all 0.5s ease;
+            width: 0;
+            z-index: 1000;
+        }
+
+        #sidebar-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        /*-------------------------------*/
+        /*          多选框checkbox       */
+        /*-------------------------------*/
+        /*覆盖多选框的样式为bootstrap*/
+        input[type="checkbox"].styled:checked + label:after,
+        input[type="radio"].styled:checked + label:after,
+        .checkbox input[type=checkbox]:checked + label:after {
+            font-family: 'Glyphicons Halflings';
+            content: "\e013";
+        }
+
+        input[type="checkbox"].styled:checked label:after,
+        input[type="radio"].styled:checked label:after,
+        .checkbox label:after {
+            /*padding-left: 2px;*/
+            /*padding-top: 0px;*/
+            font-size: 9px;
+        }
+
+        /*同时具有.chenkbox类和.checkbox-inline类（紧挨）的元素*/
+        .checkbox.checkbox-inline {
+            margin-top: 5px;
+            padding-left: 15px;
+        }
+
+        .checkbox label, .radio label {
+            padding-left: 2px;
+        }
+
+        /*-------------------------------*/
+        /*       重设起点按钮button      */
+        /*-------------------------------*/
+        #reset_ori, #cancel_reset_ori {
+            margin-left: 10px;
+            padding: 1px;
+            font-size: inherit;
+        }
+
+        #cancel_reset_ori {
+            margin-left: 2px;
+        }
+
+        /*-------------------------------*/
+        /*       增加起点按钮button      */
+        /*-------------------------------*/
+        #add_ori, #cancel_add_ori {
+            margin-left: 0 px;
+            padding: 1px;
+            font-size: inherit;
+        }
+
+        #cancel_add_ori {
+            margin-left: 2px;
+        }
+
+        /*-------------------------------*/
+        /*           租房美食景点button  */
+        /*-------------------------------*/
+        button#show_mogu_btn {
+            position: absolute;
+            top: calc((100% - 24px) / 2 - 60px);
+            right: 2px;
+            font-size: 12px;
+            color: #000000;
+        }
+
+        button#show_dianping_btn {
+            position: absolute;
+            top: calc(((100% - 24px) / 2));
+            right: 2px;
+            font-size: 12px;
+            color: #000000;
+        }
+
+        button#show_jingdian_btn {
+            position: absolute;
+            top: calc(((100% - 24px) / 2) + 60px);
+            right: 2px;
+            font-size: 12px;
+            color: #000000;
+        }
+
+        button#show_xingcheng_btn {
+            position: absolute;
+            top: calc(((100% - 24px) / 2) + 120px);
+            right: 2px;
+            font-size: 12px;
+            color: #000000;
+        }
+
+        button#show_xingcheng_btn1 {
+            position: absolute;
+            top: calc(((100% - 24px) / 2) + 120px);
+            right: 2px;
+            font-size: 12px;
+            color: #000000;
+        }
+
+        .glyphicon-home:before, .glyphicon-cutlery:before, .glyphicon-camera:before, .glyphicon-calendar:before {
+            font-size: 20px;
+            margin-left: 2px;
+        }
+
+        .amap-marker-label {
+            background-color: #7CCD7C;
+            border: 0px;
+            color: #FFF;
+        }
+
+        #container > div.amap-maps > div > div.amap-layers > div.amap-markers > div:nth-child(1) > div.amap-marker-label {
+            background-color: #EE7600;
+        }
+    </style>
+
+
+</head>
+
+<body>
+<!-- 111111111111111111111111111111111111111111111111111111 -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <label>返回地点</label>
+                <input type="input" style="width:120px"/>
+                <br>
+                <br>
+                <label>返回时间</label>
+                <input type="input" style="width:70px"/>（格式："15:30")
+                <br>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                        onClick="javascript:show_xingcheng_btn_oc()">确定
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 11111111111111111111111111111111111111111111111111111111 -->
+
+
+<div id="container"></div>
+
+<div id="wrapper">
+    <nav class="navbar navbar-inverse navbar-fixed-top" id="sidebar-wrapper" role="navigation">
+        <div id="panel">
+            <div id="searchBar">
+                <input id="searchInput" placeholder="搜地点"/>
+            </div>
+            <div id="searchResults"></div>
+        </div>
+    </nav>
+    <button type="button" class="btn btn-default btn-sm" data-toggle="offcanvas">
+        <span class="glyphicon glyphicon-search"></span>
+    </button>
+</div>
+
+
+<div id="huatiao">
+    <div class="checkbox checkbox-success checkbox-inline">
+        <input id="ditie_only" class="styled" type="checkbox">
+        <label for="ditie_only">
+            只乘地铁
+        </label>
+    </div>
+    <div class="checkbox checkbox-success checkbox-inline">
+        <input id="qixing_change" class="styled" type="checkbox">
+        <label for="qixing_change">
+            骑车接驳
+        </label>
+    </div>
+    <div class="checkbox checkbox-success checkbox-inline">
+        <input id="jiache_show" class="styled" type="checkbox">
+        <label for="jiache_show">
+            驾车查询
+        </label>
+    </div>
+    <!--重设起点-->
+    <button id="reset_ori" type="button" class="btn btn-success" onClick="javascript:reset_ori_oc()">重设起点</button>
+    <button id="cancel_reset_ori" type="button" class="btn btn-warning" style="display:none;"
+            onClick="javascript:cancel_reset_ori_oc()">取消
+    </button>
+    <!--增加起点-->
+    <button id="add_ori" type="button" class="btn btn-success" onClick="javascript:add_ori_oc()">增加起点</button>
+    <button id="cancel_add_ori" type="button" class="btn btn-warning" style="display:none;"
+            onClick="javascript:cancel_add_ori_oc()">取消
+    </button>
+
+    <input type="hidden" id="timeRange" class="single-slider" value="1"/>
+</div>
+
+<button id="show_mogu_btn" type="button" class="btn btn-default btn-xs" style="display:none;"
+        onClick="javascript:show_mogu_btn_oc()">
+    <span class="glyphicon glyphicon-home">
+        <br/>租房子
+    </span>
+</button>
+
+<button id="show_dianping_btn" type="button" class="btn btn-default btn-xs" style="display:none;"
+        onClick="javascript:show_dianping_btn_oc()">
+    <span class="glyphicon glyphicon-cutlery">
+        <br/>找美食
+    </span>
+</button>
+
+<button id="show_jingdian_btn" type="button" class="btn btn-default btn-xs" style="display:none;"
+        onClick="javascript:show_jingdian_btn_oc()">
+    <span class="glyphicon glyphicon-camera">
+        <br/>热门地
+    </span>
+</button>
+<button id="show_xingcheng_btn" type="button" class="btn btn-default btn-xs" style="display:none;" data-toggle="modal"
+        data-target="#myModal">
+    <span class="glyphicon glyphicon-calendar">
+        <br/>排行程
+    </span>
+    <button id="show_xingcheng_btn1" type="button" class="btn btn-default btn-xs" style="display:none;"
+            onClick="javascript:show_xingcheng_btn_oc1()">
+    <span class="glyphicon glyphicon-calendar">
+        <br/>排行程
+    </span>
+    </button>
+
+
+    <!--     <button id="show_advance_set" type="button" class="btn btn-info" onClick="javascript:show_advance_set_oc()">显示高级设置</button>
+        <button id="cancel_advance_set" type="button" class="btn btn-warning" style="display:none;" onClick="javascript:cancel_advance_set_oc()">取消</button>
+        <div id="advance_set" style="display: none;float: right;">
+            <label>步行速度：</label>
+            <input id="buxing_speed" type="input" style="height: 20px;" />米/秒
+            <br>
+            <label>骑行速度：</label>
+            <input id="qixing_speed" type="input" style="height: 20px;" />米/秒
+            <br>
+            <label>平均等待时间：</label>
+            <input id="wait_time" type="input" style="height: 20px;" />秒
+            <br>
+        </div> -->
+
+
+    <script>
+        // function show_advance_set_oc(){
+        //     if ($("#show_advance_set").text()=="显示高级设置") {
+        //         $("#show_advance_set").text("确定");
+        //         $("#cancel_advance_set").show();
+        //         $("#advance_set").show();
+        //         //暂存原始的起始全局设置参数
+        //         $("#buxing_speed").val(buxing_speed);
+        //         $("#qixing_speed").val(qixing_speed);
+        //         $("#wait_time").val(wait_time);
+        //     }
+        //     else { //即点击了确定
+        //         $("#show_advance_set").text("显示高级设置");
+        //         $("#advance_set").hide();
+        //         $("#cancel_advance_set").hide();
+        //         buxing_speed = parseFloat($("#buxing_speed").val());
+        //         qixing_speed = parseFloat($("#qixing_speed").val());
+        //         wait_time = parseFloat($("#wait_time").val());
+        //         cal_data_by_ori();
+        //     }
+        // }
+        // function cancel_advance_set_oc(){
+        //     //点击了取消
+        //     $("#show_advance_set").text("显示高级设置");
+        //     $("#cancel_advance_set").hide();
+        //     $("#advance_set").hide();
+        // }
+        //*********************************************************
+        //                重设起点按钮响应函数
+        //*********************************************************
+        function OnClickSetMarker(e) {
+            if (input_Marker_array[0]) {
+                input_Marker_array[0].setPosition(e.lnglat);
+            }
+            else {
+                input_Marker_array[0] = new AMap.Marker({
+                    map: map,
+                    position: e.lnglat,
+                    zIndex: 130
+                });
+            }
+        }
+        function reset_ori_oc() {
+            if ($("#reset_ori").text() == "重设起点") {
+                $("#reset_ori").text("确定");
+                $("#cancel_reset_ori").show();
+                //暂存原始的起始Marker的经纬度
+                tmp_LngLat = new AMap.LngLat(input_Marker_array[0].getPosition().getLng(), input_Marker_array[0].getPosition().getLat());
+                //设置地图点击触发事件可用
+                map.on('click', OnClickSetMarker);
+                //设置滑条不可用
+                $('.single-slider').jRange('disable');
+            }
+            else { //即点击了确定
+                $("#reset_ori").text("重设起点");
+                $("#cancel_reset_ori").hide();
+                //设置地图点击触发事件不可用
+                map.off('click', OnClickSetMarker);
+                //设置滑条可用
+                $('.single-slider').jRange('enable');
+                cal_data_by_ori(0);
+            }
+        }
+
+        function cancel_reset_ori_oc() {
+            //点击了取消
+            $("#reset_ori").text("重设起点");
+            $("#cancel_reset_ori").hide();
+            //设置地图点击触发事件不可用
+            map.off('click', OnClickSetMarker);
+            //将起始坐标回复到选择之前
+            input_Marker_array[0].setPosition(tmp_LngLat);
+            //设置滑条可用
+            $('.single-slider').jRange('enable');
+        }
+
+        //*********************************************************
+        //                增加起点按钮响应函数
+        //*********************************************************
+        var tmp_add_Marker = new AMap.Marker({position:[113.951652, 22.539073]});
+        function add_on_click (e) {
+            tmp_add_Marker.setPosition(e.lnglat);
+        }
+        function add_ori_oc() {
+            if ($("#add_ori").text() == "增加起点") {
+                $("#add_ori").text("确定");
+                $("#cancel_add_ori").show();
+                //设置临时点标记显示在地图上，绑定事件函数
+                tmp_add_Marker.setMap(map);
+                map.on('click', add_on_click);
+                //设置滑条不可用
+                $('.single-slider').jRange('disable');
+            }
+            else { //即点击了确定
+                $("#add_ori").text("增加起点");
+                $("#cancel_add_ori").hide();
+                //设置临时电标记不显示在地图上，解绑事件函数
+                tmp_add_Marker.setMap();
+                map.off('click', add_on_click);
+                //设置滑条可用
+                $('.single-slider').jRange('enable');
+                var _input_Marker = new AMap.Marker({map:map,position:tmp_add_Marker.getPosition()});
+                _input_Marker.on('click',function(e){
+                    var index = input_Marker_array.indexOf(e.target);
+                    console.log(index);
+                    delete_ori_marker(index)
+                }); 
+                input_Marker_array.push(_input_Marker);
+                add_ori_marker();
+            }
+        }
+        function cancel_add_ori_oc() {
+            //点击了取消
+            $("#add_ori").text("增加起点");
+            $("#cancel_add_ori").hide();
+            //设置地图点击触发事件不可用
+            map.off('click', add_on_click);
+            tmp_add_Marker.setMap();
+            //设置滑条可用
+            $('.single-slider').jRange('enable');
+        }
+
+        //*********************************************************
+        //                租房、景点、美食按钮响应函数
+        //*********************************************************
+        function show_mogu_btn_oc() {
+            if (pointSimplifier_mogu.isHidden()) {
+                pointSimplifier_mogu.show();
+                pointSimplifier_mogu.on('pointClick', mogu_pointClick);
+                $("#show_mogu_btn").css("color", "#ff5600");
+            } else {
+                pointSimplifier_mogu.hide();
+                pointSimplifier_mogu.off('pointClick', mogu_pointClick);
+                $("#show_mogu_btn").css("color", "#000000");
+            }
+        }
+
+        function show_dianping_btn_oc() {
+            if (pointSimplifier_dianping.isHidden()) {
+                pointSimplifier_dianping.show();
+                pointSimplifier_dianping.on('pointClick', dianping_pointClick);
+                $("#show_dianping_btn").css("color", "#ff5600");
+            } else {
+                pointSimplifier_dianping.hide();
+                pointSimplifier_dianping.off('pointClick', dianping_pointClick);
+                $("#show_dianping_btn").css("color", "#000000");
+            }
+        }
+
+        function show_jingdian_btn_oc() {
+            if (pointSimplifier_jingdian.isHidden()) {
+                pointSimplifier_jingdian.show();
+                pointSimplifier_jingdian.on('pointClick', jingdian_pointClick);
+                $("#show_jingdian_btn").css("color", "#ff5600");
+            } else {
+                pointSimplifier_jingdian.hide();
+                pointSimplifier_jingdian.off('pointClick', jingdian_pointClick);
+                $("#show_jingdian_btn").css("color", "#000000");
+            }
+        }
+
+        function show_xingcheng_btn_oc() {
+            if (ishuanle == false) {
+                $("#show_xingcheng_btn1").css("color", "#ff5600");
+                map.setMapStyle('amap://styles/normal');
+                map.setZoomAndCenter(12, new AMap.LngLat(114.018699, 22.535406)); //电脑13，手机12
+                huanle_customLayer.setMap(map);
+                for (var i in input_Marker_array) {
+                    input_Marker_array[i].setMap();
+                    customLayer_array[i].setMap();
+
+                }
+                tmp_xingcheng_Marker.setMap(map);
+                marker_1.setMap(map);
+                marker_2.setMap(map);
+                marker_3.setMap(map);
+                marker_4.setMap(map);
+                //根据起、终点坐标查询公交换乘路线
+                trans1.search([{keyword: '岗厦北(地铁站)'}, {keyword: '深圳湾公园(地铁站)'}], function (status, result) {
+                });
+                trans2.search([{keyword: '深圳湾公园(地铁站)'}, {keyword: '福田地铁(地铁站)'}], function (status, result) {
+                });
+                ishuanle = true;
+                $("#show_xingcheng_btn").hide();
+                $("#show_xingcheng_btn1").show();
+            }
+            // } else {
+            //     $("#show_xingcheng_btn").css("color","#000000");
+            //     map.setMapStyle('amap://styles/whitesmoke');
+            //     map.setZoomAndCenter(13,input_LngLat);
+            //     trans1.clear();
+            //     trans2.clear();
+            //     for (var i = 0; i < huanlehaian_markers.length; i++) {
+            //         huanlehaian_markers[i].setMap();
+            //     }
+            //     huanle_customLayer.setMap();
+            //     customLayer.setMap(map);
+            //     ishuanle = false;
+            //     marker_1.setMap();
+            //     marker_2.setMap();
+            //     marker_3.setMap();
+            //     marker_4.setMap();
+            //     // $("#show_xingcheng_btn").attr("data-toggle","modal");
+            //     // $("#show_xingcheng_btn").attr("data-target","#myModal");
+            //     // $("#show_xingcheng_btn").attr("onClick",null);
+            //     // $("#show_xingcheng_btn").removeAttr("onClick");
+            // }
+        }
+
+        function show_xingcheng_btn_oc1() {
+            if (ishuanle == true) {
+                // $("#show_xingcheng_btn1").css("color","#000000");
+                map.setMapStyle('amap://styles/whitesmoke');
+                map.setZoomAndCenter(13, new AMap.LngLat(114.018699, 22.535406));
+                trans1.clear();
+                trans2.clear();
+                for (var i = 0; i < huanlehaian_markers.length; i++) {
+                    huanlehaian_markers[i].setMap();
+                }
+                huanle_customLayer.setMap();
+                for (var i in input_Marker_array) {
+                    input_Marker_array[i].setMap(map);
+                    customLayer_array[i].setMap(map);
+                }
+                ishuanle = false;
+                tmp_xingcheng_Marker.setMap();
+                marker_1.setMap();
+                marker_2.setMap();
+                marker_3.setMap();
+                marker_4.setMap();
+                $("#show_xingcheng_btn1").hide();
+                $("#show_xingcheng_btn").show();
+            }
+        }
+
+        //------------------------------------------------------------------
+        //加载完网页就自动执行的内容(处理完js)
+        $(function () {
+            $('[data-toggle="offcanvas"]').click(function () {
+                $('#wrapper').toggleClass('toggled');
+            });
+
+            //绑定多选框选择事件函数
+            $("#ditie_only").change(function () { //change之后状态
+                if ($("#ditie_only").is(":checked")) {
+                    DT_count = 1;
+                    GJ_count = 0;
+                    for(var i in input_Marker_array){
+                        cal_data_by_ori(i);
+                    }
+                } else {
+                    DT_count = 1;
+                    GJ_count = 1;
+                    for(var i in input_Marker_array){
+                        cal_data_by_ori(i);
+                    }
+                }
+            });
+            $("#qixing_change").change(function () { //change之后状态
+                if ($("#qixing_change").is(":checked")) {
+                    is_buxing = false;
+                    for(var i in input_Marker_array){
+                        cal_data_by_ori(i);
+                    }
+                } else {
+                    is_buxing = true;
+                    for(var i in input_Marker_array){
+                        cal_data_by_ori(i);
+                    }
+                }
+            });
+            $("#jiache_show").change(function () { //change之后状态
+                if ($("#jiache_show").is(":checked")) {
+                    image_customLayer.setMap(map);
+                    for(var i in input_Marker_array){
+                        customLayer_array[i].setMap();
+                        input_Marker_array[i].setMap();
+                    }
+                } else {
+                    image_customLayer.setMap();
+                    for(var i in input_Marker_array){
+                        customLayer_array[i].setMap(map);
+                        input_Marker_array[i].setMap(map);
+                    }
+                }
+            });
+
+            //初始化滑条
+            $('.single-slider').jRange({
+                onstatechange: function () {
+                    isChanged = true;
+                },
+                from: 0,
+                to: 180,
+                step: 1,
+                scale: [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180],
+                format: '%s',
+                width: 300,
+                showLabels: true,
+                showScale: true
+            });
+
+            //加载右边的按钮
+            $("#show_mogu_btn").show();
+            $("#show_dianping_btn").show();
+            $("#show_jingdian_btn").show();
+            $("#show_xingcheng_btn").show();
+            var slider_width = parseInt($(".slider-container.theme-green").css("width"));
+            $("#huatiao").css("width", (slider_width + 84) + "px");
+        });
+
+
+        //*********************************************************
+        //                首先初始化地图对象map！
+        //*********************************************************
+        var map = new AMap.Map("container", {
+            resizeEnable: true,
+            zoomEnable: true,
+            // center: [114.06924,22.540937],
+            zoom: 13,
+            // mapStyle:'amap://styles/normal'
+            mapStyle: 'amap://styles/whitesmoke'
+            // mapStyle:'amap://styles/a728e5f2216a561b98e99b0fadaec09a'
+        });
+
+        //*********************************************************
+        //                可自定义的全局变量
+        //*********************************************************
+        //人的步行速度 m/s
+        var buxing_speed = 0.7;
+        var qixing_speed = 1.2;
+        //平均等待时间 地铁平均4分钟一班，平均等待时间2分钟
+        var wait_time = 60;
+        //其余0时间（建议步行的）设置为300（5分钟）
+        var BuXing_time = 300;
+
+
+        //*********************************************************
+        //                      全局变量 
+        //*********************************************************
+        //初始浏览器定位服务变量
+        var geolocation;
+        //获取当前地图分辨率，单位：米/像素
+        var MperPixel = map.getResolution();
+        //用户输入的定位，初始值使用用户浏览器定位的地点，分别用经纬度LngLat对象及标记Marker对象表示
+        var tmp_LngLat;
+        // var input_Marker, tmp_LngLat, input_Marker_2, input_Marker_3;
+        // input_Marker_2 = new AMap.Marker({map:map,position:[113.951652, 22.539073]});
+        // input_Marker_3 = new AMap.Marker({map:map,position:[114.016626,22.632715]});
+        
+        //用以计算的起始地铁点和起始公交点的个数,默认选择公交和地铁
+        var DT_count = 1;
+        var GJ_count = 1;
+        //判断是否采用步行，否则就是骑行，默认是步行
+        var is_buxing = true;
+        var speed;
+        //用以存储某个地铁站为起点的通勤数据的数组（矩阵中的某一行）
+        var times = [], times_2 = [], times_3=[];
+        //用以在对通勤时间数组times进行低到高排序,映射对应的地铁数组同等排序的中间变量
+        var sort_lnglat_idx, sort_lnglat_idx_2, sort_lnglat_idx_3; //序数排序
+        // var XYpos = [], XYpos_2 = [], XYpos_3=[]; //存放经纬度对应canvas的坐标,并且是根据sort_lnglat_idx_3进行了排序,必须初始化为数组[]
+        //滑条滑到的时间，单位秒
+        var time = 0;
+        //滑条如果有移动则设置为true,draw完就设置为false
+        var isChanged = false;
+
+        var tmp_xingcheng_Marker = new AMap.Marker([114.06924,22.540937]);
+        var input_Marker_array = [];
+        // input_Marker_array[0] = new AMap.Marker({map:map,position:[114.052921, 22.540422]});
+        // input_Marker_array[1] = new AMap.Marker({map:map,position:[113.951652, 22.539073]}); 
+        // input_Marker_array[2] = new AMap.Marker({map:map,position:[114.016626,22.632715]});
+        var canvas_array=[], customLayer_array = [], times_array = [], XYpos_array = [], sort_lnglat_idx_array = [];
+        //海量点的信息窗口
+        var infoWindow = new AMap.InfoWindow({offset: new AMap.Pixel(0, -15)});
+
+ 
+        //*********************************************************
+        //                   初始化canvas
+        //*********************************************************
+        /* 初始定位起点 */
+        canvas_array.push(document.createElement('canvas'));
+        canvas_array[0].width = map.getSize().width;
+        canvas_array[0].height = map.getSize().height;
+        customLayer_array.push(new AMap.CustomLayer(canvas_array[0], {
+                    opacity: 0.6,
+                    zooms: [1, 18],
+                    zIndex: 111
+                }));
+        customLayer_array[0].index = 0;
+        customLayer_array[0].render = function(){console.log('我是第一个render的');onRender(canvas_array[this.index], input_Marker_array[this.index], times_array[this.index], sort_lnglat_idx_array[this.index], XYpos_array[this.index]);}
+        XYpos_array.push([]);
+
+
+
+        function add_ori_marker(){
+            var _canvas = document.createElement('canvas');
+            _canvas.width = map.getSize().width;
+            _canvas.height = map.getSize().height;
+            canvas_array.push(_canvas);
+            _customLayer = new AMap.CustomLayer(_canvas,{
+                opacity: 0.6,
+                zooms: [1, 18],
+                zIndex: 111,
+            });
+            _customLayer.index = customLayer_array.push(_customLayer) - 1;
+            _customLayer.render = function(){console.log('我是后来增加的render的');onRender(canvas_array[this.index], input_Marker_array[this.index], times_array[this.index], sort_lnglat_idx_array[this.index], XYpos_array[this.index]);}
+            for(var i in customLayer_array){
+                if (input_Marker_array.length == 1) {
+                    customLayer_array[i].setOpacity(0.6);
+                }
+                if (input_Marker_array.length == 2) {
+                    customLayer_array[i].setOpacity(0.5);
+                }
+                if (input_Marker_array.length >= 3) {
+                    customLayer_array[i].setOpacity(0.4);
+                }
+            }
+            //必须按照顺序
+            XYpos_array.push([]);
+            cal_data_by_ori(_customLayer.index);
+            _customLayer.setMap(map);
+        }
+
+
+        function delete_ori_marker(index){
+            customLayer_array[index].setMap();
+            input_Marker_array[index].setMap();
+            customLayer_array.splice(index,1);
+            input_Marker_array.splice(index,1);
+            canvas_array.splice(index,1);
+            XYpos_array.splice(index,1);
+            sort_lnglat_idx_array.splice(index,1);
+            times_array.splice(index,1);
+            for(var i in customLayer_array){
+                if (input_Marker_array.length == 1) {
+                    customLayer_array[i].setOpacity(0.6);
+                }
+                if (input_Marker_array.length == 2) {
+                    customLayer_array[i].setOpacity(0.5);
+                }
+                if (input_Marker_array.length >= 3) {
+                    customLayer_array[i].setOpacity(0.4);
+                }
+            }
+        }
+
+        /*--------------------------------------*/
+        /* 欢乐海岸根据地图缩放基本触发显示与否 */
+        /*--------------------------------------*/
+        map.on('zoomchange', function (e) {
+            if (map.getZoom() >= 15 && ishuanle == true) {
+                for (var i = 0; i < huanlehaian_markers.length; i++) {
+                    huanlehaian_markers[i].setMap(map);
+                }
+            } else {
+                for (var i = 0; i < huanlehaian_markers.length; i++) {
+                    huanlehaian_markers[i].setMap();
+                }
+            }
+
+            if (map.getZoom() <= 14 && ishuanle == true) {
+                marker_1.setMap(map);
+                marker_2.setMap(map);
+                marker_3.setMap(map);
+                marker_4.setMap(map);
+            } else {
+                marker_1.setMap();
+                marker_2.setMap();
+                marker_3.setMap();
+                marker_4.setMap();
+            }
+        });
+        //*********************************************************
+        //           根据浏览器定位服务，确定初始起点
+        //*********************************************************
+        map.plugin('AMap.Geolocation', function () {
+            geolocation = new AMap.Geolocation({
+                enableHighAccuracy: true,//是否使用高精度定位，默认:true
+                timeout: 1000,          //超过10秒后停止定位，默认：无穷大
+                maximumAge: 60000,           //定位结果缓存0毫秒，默认：0
+                convert: true,           //自动偏移坐标，偏移后的坐标为高德坐标，默认：true
+                showButton: true,        //显示定位按钮，默认：true
+                buttonPosition: 'RT',    //定位按钮停靠位置，默认：'LB'，左下角
+                buttonOffset: new AMap.Pixel(5, 5),//定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
+                showMarker: false,        //定位成功后在定位到的位置显示点标记，默认：true
+                showCircle: false,        //定位成功后用圆圈表示定位精度范围，默认：true
+                panToLocation: true,     //定位成功后将定位到的位置作为地图中心点，默认：true
+                zoomToAccuracy: false      //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
+            });
+            map.addControl(geolocation);
+            geolocation.getCurrentPosition();
+            AMap.event.addListener(geolocation, 'complete', onGeoLocationComplete);//返回定位信息
+            AMap.event.addListener(geolocation, 'error', onGeoLocationError);
+        });
+
+        //解析定位结果,设置初始输入位置为定位位置
+        function onGeoLocationComplete(data) {
+            console.log('定位成功');
+            if (input_Marker_array[0]) {
+                input_Marker_array[0].setPosition(data.position);
+            } else {
+                input_Marker_array[0] = new AMap.Marker({
+                    map: map,
+                    position: data.position,
+                    zIndex: 130
+                });
+            }
+            cal_data_by_ori(0);
+            customLayer_array[0].setMap(map);
+            // console.log('定位成功结束');
+        }
+
+        function onGeoLocationError(data) {
+            console.log('定位失败');
+            if (input_Marker_array[0]) {
+                input_Marker_array[0].setPosition([114.052921, 22.540422]);
+            } else {
+                input_Marker_array[0] = new AMap.Marker({
+                    map: map,
+                    position:[114.052921, 22.540422],
+                    zIndex: 130
+                });
+            }
+            cal_data_by_ori(0);
+            customLayer_array[0].setMap(map);
+            // console.log('定位失败结束');
+        }
+        //*********************************************************
+        //                   增加海量点服务
+        //*********************************************************
+        var pointSimplifier_mogu, pointSimplifier_dianping, pointSimplifier_jingdian;
+        var mogu_data, dianping_meishi_data, jingdian_data;
+        // 加载PointSimplifier，loadUI的路径参数为模块名中 'ui/' 之后的部分
+        AMapUI.loadUI(['misc/PointSimplifier'], function (PointSimplifier) {
+            if (!PointSimplifier.supportCanvas) {
+                alert('当前环境不支持 Canvas！');
+                return;
+            }
+
+            function onIconLoad() {
+                pointSimplifier_mogu.renderLater();
+            }
+
+            function onIconError(e) {
+                alert('图片加载失败！');
+            }
+            //返回pointstyle用以样式分组
+            function getPointStyle(width_height,image_path){
+                return {
+                    pointStyle: {
+                        //绘制点占据的矩形区域
+                        content: PointSimplifier.Render.Canvas.getImageContent(
+                            image_path, onIconLoad, onIconError),
+                        width: width_height,
+                        height: width_height,
+                        //定位点为中心
+                        offset: ['-50%', '-50%']
+                    }
+                };
+            }
+
+            var width_height = 25;
+            var groupStyleMap_mogu = {
+                '0':getPointStyle(width_height,'pic/0.png'),
+                '1':getPointStyle(width_height,'pic/1.png'), 
+                '2':getPointStyle(width_height,'pic/2.png'),
+                '3':getPointStyle(width_height,'pic/3.png'),
+                '4':getPointStyle(width_height,'pic/4.png')
+            };
+
+            // 蘑菇租房数据海量点
+            pointSimplifier_mogu = new PointSimplifier({
+                map: map, //关联的map
+                zIndex: 105,
+                autoSetFitView: false,
+                compareDataItem: function (a, b, aidx, bidx) {
+                    return a.minPrice < b.minPrice ? -1 : 1;
+                },
+                getPosition: function (dataItem) {
+                    //返回数据项的经纬度，AMap.LngLat实例或者经纬度数组
+                    return [dataItem.lng, dataItem.lat];
+                },
+                getHoverTitle: function (dataItem, idx) {
+                    //返回数据项的Title信息，鼠标hover时显示
+                    // return dataItem.comName + " (" + dataItem.count + ") " + dataItem.minPrice;
+                },
+                renderConstructor: PointSimplifier.Render.Canvas.GroupStyleRender,
+                renderOptions: {
+                    getGroupId: function (dataItem, idx) {
+                        if (dataItem.minPrice <= 2000) {
+                            return 0;
+                        } else if (dataItem.minPrice > 2000 && dataItem.minPrice <= 3000) {
+                            return 1;
+                        } else if (dataItem.minPrice > 3000 && dataItem.minPrice <= 4000) {
+                            return 2;
+                        } else if (dataItem.minPrice > 4000 && dataItem.minPrice <= 5000) {
+                            return 3;
+                        } else {
+                            return 4;
+                        }
+                    },
+                    groupStyleOptions: function (gid) {
+                        return groupStyleMap_mogu[gid];
+                    }
+                }
+            });
+
+            $.getJSON("data/mogu.json", function (data) {
+                mogu_data = data;
+                pointSimplifier_mogu.setData(mogu_data); //设置数据源，data需要是一个数组
+                pointSimplifier_mogu.hide();
+            });
+
+
+            // 大众点评数据海量点
+            pointSimplifier_dianping = new PointSimplifier({
+                map: map, //关联的map
+                zIndex: 105,
+                autoSetFitView: false,
+                compareDataItem: function (a, b, aidx, bidx) {
+                    return aidx > bidx ? -1 : 1;
+                },
+                getPosition: function (dataItem) {
+                    return [dataItem.lng, dataItem.lat];
+                },
+                getHoverTitle: function (dataItem, idx) {
+                },
+                renderOptions: {
+                    pointStyle: {
+                        content: PointSimplifier.Render.Canvas.getImageContent(
+                            'pic/meishi.png', onIconLoad, onIconError),
+                        width: 20,
+                        height: 20,
+                        offset: ['-50%', '-50%']
+                    }
+                }
+            });
+            $.getJSON("data/dianping_meishi_all.json", function (data) {
+                dianping_meishi_data = data;
+                pointSimplifier_dianping.setData(dianping_meishi_data); //设置数据源，data需要是一个数组
+                pointSimplifier_dianping.hide();
+            });
+
+            // 景点数据海量点
+            pointSimplifier_jingdian = new PointSimplifier({
+                map: map, //关联的map
+                zIndex: 105,
+                autoSetFitView: false,
+                compareDataItem: function (a, b, aidx, bidx) {
+                    return aidx > bidx ? -1 : 1;
+                },
+                getPosition: function (dataItem) {
+                    return [dataItem.lng, dataItem.lat];
+                },
+                getHoverTitle: function (dataItem, idx) {
+                },
+                renderOptions: {
+                    pointStyle: {
+                        content: PointSimplifier.Render.Canvas.getImageContent(
+                            'pic/jingdian.png', onIconLoad, onIconError),
+                        width: 20,
+                        height: 20,
+                        offset: ['-50%', '-50%']
+                    }
+                }
+            });
+            $.getJSON("data/jingdian.json", function (data) {
+                // $.getJSON("data/lianjia.json",function(data){
+                jingdian_data = data;
+                pointSimplifier_jingdian.setData(jingdian_data); //设置数据源，data需要是一个数组
+                pointSimplifier_jingdian.hide();
+            });
+
+        });
+        var mogu_pointClick = function (e, record) {
+            var content = record.data.comName + " (" + record.data.count + "套) 最低￥" + record.data.minPrice;
+            content += "   <a href='https://sz.mogoroom.com/list?communityId=" + record.data.communityId + "'>详情</a>";
+            infoWindow.setContent(content);
+            infoWindow.open(map, [record.data.lng, record.data.lat]);
+            // window.open("https://sz.mogoroom.com/list?communityId=" + record.data.communityId);
+        };
+        var dianping_pointClick = function (e, record) {
+            var content = record.data.name + " 人均￥" + record.data.avgprice;
+            content += "   <a href='https://www.dianping.com/shop/" + record.data.shopid + "'>详情</a>";
+            infoWindow.setContent(content);
+            infoWindow.open(map, [record.data.lng, record.data.lat]);
+            // window.open("https://www.dianping.com/shop/" + record.data.shopid);
+        };
+        var jingdian_pointClick = function (e, record) {
+            var price = record.data.avgprice == -1 ? '无需门票' : '人均消费￥' + record.data.avgprice;
+            var content = record.data.name + " (" + record.data.address + ")  " + price;
+            content += "   <a href='https://www.dianping.com/shop/" + record.data.shopid + "'>详情</a>";
+            infoWindow.setContent(content);
+            infoWindow.open(map, [record.data.lng, record.data.lat]);
+            // 测试链家数据
+            // var content = record.data.name  + "  " + record.data.house_count + "套";
+            // content += "   <a href='https://sz.lianjia.com/zufang/rs/" + record.data.name + "'>详情</a>";
+            // infoWindow.setContent(content);
+            // infoWindow.open(map,[record.data.lng,record.data.lat]);
+        };
+
+        //*********************************************************
+        //                  增加搜索服务
+        //*********************************************************
+        AMapUI.loadUI(['misc/PoiPicker'], function (PoiPicker) {
+            var poiPicker = new PoiPicker({
+                input: 'searchInput',
+                placeSearchOptions: {
+                    map: map,
+                    pageSize: 50
+                },
+                searchResultsContainer: 'searchResults'
+            });
+            poiPicker.on('poiPicked', function (poiResult) {
+                poiPicker.hideSearchResults();
+                var source = poiResult.source,
+                    poi = poiResult.item;
+                if (source !== 'search') {
+                    //suggest来源的，同样调用搜索
+                    poiPicker.searchByKeyword(poi.name);
+                } else {
+                    //console.log(poi);
+                }
+            });
+        });
+
+        //*********************************************************
+        //                 驾车图片
+        //*********************************************************
+        var img_canvas = document.createElement('canvas');
+        img_canvas.width = map.getSize().width;
+        img_canvas.height = map.getSize().height;
+        var image_context = img_canvas.getContext("2d");
+        var jiache_img = new Image();
+        jiache_img.src = 'pic/jiache.png';
+        var image_customLayer = new AMap.CustomLayer(img_canvas, {
+            opacity: 0.7,
+            zooms: [1, 18],
+            zIndex: 131
+        });
+        image_customLayer.render = image_onRender;
+        var img_lnglat_lefttop = new AMap.LngLat(113.84, 22.66);
+        var img_lnglat_rightbottom = new AMap.LngLat(114.16, 22.50);
+
+        function image_onRender() {
+            image_context.clearRect(0, 0, img_canvas.width, img_canvas.height);
+            var img_pixel_lefttop = map.lngLatToContainer(img_lnglat_lefttop);
+            var img_pixel_rightbottom = map.lngLatToContainer(img_lnglat_rightbottom);
+            var width = img_pixel_rightbottom.getX() - img_pixel_lefttop.getX();
+            var height = img_pixel_rightbottom.getY() - img_pixel_lefttop.getY();
+            image_context.drawImage(jiache_img, img_pixel_lefttop.getX(), img_pixel_lefttop.getY(), width, height);
+        }
+
+        //*********************************************************
+        //                     功能函数
+        //*********************************************************
+        //清洗times，times即通勤矩阵中的一行
+        function cleantime(times, ori_index, wait_time, time_distance) {
+            var ret_times = times.slice(0);
+            //将时间中的0值(建议步行)替换成为步行值BuXing_time
+            for (var i = 0; i < ret_times.length; i++) {
+                if (ret_times[i] === 0) {
+                    ret_times[i] = BuXing_time;
+                }
+            }
+            //每个值再加上从任意起点到最近开始地铁站的时间耗费以及平均等待时间
+            for (var i = 0; i < ret_times.length; i++) {
+                ret_times[i] = ret_times[i] + time_distance + wait_time;
+            }
+            //开始点times[ori_index]只需设置为:0 + time_distance
+            ret_times[ori_index] = time_distance;
+            return ret_times;
+        }
+
+        //找到指定个数的数组最小值依次排序的下标
+        function find_min_index_by_counts(array, min_count) {
+            var tmp_array = array.slice(0);
+            tmp_array.sort(function (a, b) {
+                return a - b;
+            });
+            var min_index_array = [];
+            for (var i = 0; i < min_count; i++) {
+                min_index_array.push(array.indexOf(tmp_array[i]));
+            }
+            return min_index_array;
+        }
+
+        function cal_times(input_LngLat, DT_count, GJ_count) {
+            var cal_result;
+            var DT_times = [], GJ_times = [];
+            var time_distance, meter_distance;
+            if (DT_count != 0) { //需要计算地铁
+                console.log('cal! DT');
+                cal_result = [];
+                for (var i in DT_LngLatArray) {
+                    cal_result[i] = DT_LngLatArray[i].distance(input_LngLat); //算距离
+                }
+                var DT_min_index_array = find_min_index_by_counts(cal_result, DT_count)[0]; //确定最近的地铁站的序数,先默认是1个地铁站的序数（DT_count=1)
+                meter_distance = cal_result[DT_min_index_array];
+                time_distance = Math.round(meter_distance / speed);
+                // console.log('meter_distance: ' + meter_distance + 'time_distance: ' + time_distance);
+                DT_times = DT_times_metrix[DT_min_index_array].slice();
+                DT_times = cleantime(DT_times, DT_min_index_array, wait_time, time_distance);
+            }
+            if (GJ_count != 0) { //需要计算公交
+                console.log('cal! GJ');
+                cal_result = [];
+                for (var i in GJ_LngLatArray) {
+                    cal_result[i] = GJ_LngLatArray[i].distance(input_LngLat); //算距离
+                }
+                var GJ_min_index_array = find_min_index_by_counts(cal_result, GJ_count)[0]; //确定最近的公交站的序数,先默认是1个地铁站的序数（GJ_count=1)
+                meter_distance = cal_result[GJ_min_index_array];
+                time_distance = Math.round(meter_distance / speed);
+                // console.log('meter_distance: ' + meter_distance + 'time_distance: ' + time_distance);
+                GJ_times = GJ_times_metrix[GJ_min_index_array].slice();
+                GJ_times = cleantime(GJ_times, GJ_min_index_array, wait_time, time_distance);
+            }
+            var times = DT_times.concat(GJ_times);
+            //先构建个字典{0:time1,1:time2,2:time3...}
+            var tmpmap = {};
+            for (var i in times) {
+                tmpmap[i] = times[i];
+            }
+            //根据字典值递增对键进行排序 ["2","1","3",...],注意每个元素是字符串
+            var sort_lnglat_idx = Object.keys(tmpmap).sort(function (a, b) {
+                return tmpmap[a] - tmpmap[b];
+            });
+            // console.log('here to cal sort_lnglat_idx'+sort_lnglat_idx);
+            times.sort(function (a, b) {
+                return a - b;
+            });
+            console.log('---------------------');
+            return [times, sort_lnglat_idx];
+        }
+
+
+        //主要函数，根据新输入的地图任意起点进行数据的计算，并且最后调用onRender方法进行重绘,i为该起点在inputMarker_array中的序数。
+        function cal_data_by_ori(i) {
+            speed = is_buxing ? buxing_speed : qixing_speed;
+            [times_array[i],sort_lnglat_idx_array[i]] = cal_times(input_Marker_array[i].getPosition(), DT_count, GJ_count);
+            onRender(canvas_array[i], input_Marker_array[i], times_array[i], sort_lnglat_idx_array[i], XYpos_array[i]);
+        }
+
+         /**
+         * Canvas Customer Layer绑定的render函数，当地图缩放或者移动时触发执行
+         * @param  {HTML Canvas} canvas          [description]
+         * @param  {AMap.LngLat} input_LngLat    [description]
+         * @param  {Array} times           [description]
+         * @param  {Array} sort_lnglat_idx [description]
+         * @param  {Array} XYpos           输入外部全局变量XYpos,然后函数执行完会将结果保存到外部全局变量中,XYpos必须在外部先全局初始化为[]
+         * @return {Null}                 [description]
+         */         
+        function onRender(canvas, input_Marker, times, sort_lnglat_idx, XYpos) {
+            canvas.length = map.getSize().length;
+            canvas.width = map.getSize().width;
+            MperPixel = map.getResolution(); //刷新地图分辨率
+            if (DT_count != 0 && GJ_count == 0) { //只看地铁
+                for (var i in sort_lnglat_idx) {
+                    XYpos[i] = map.lngLatToContainer(DT_LngLatArray[sort_lnglat_idx[i]]);
+                }
+            }
+            if (DT_count == 0 && GJ_count != 0) { //只看公交
+                for (var i in sort_lnglat_idx) {
+                    XYpos[i] = map.lngLatToContainer(GJ_LngLatArray[sort_lnglat_idx[i]]);
+                }
+            }
+            if (DT_count != 0 && GJ_count != 0) { //公交和地铁
+                for (var i in sort_lnglat_idx) {
+                    XYpos[i] = map.lngLatToContainer(DT_GJ_LngLatArray[sort_lnglat_idx[i]]);
+                }
+            }
+            draw(canvas, input_Marker, times, XYpos);
+        }
+
+        //在canvas画布中画圆,滑动时间滑条就单调用这个函数
+        function draw(canvas, input_Marker, times, XYpos) {
+            //设置context图形样式
+            var context = canvas.getContext('2d');
+            // context.globalAlpha=0.5
+            context.clearRect(0, 0, canvas.width, canvas.height); // 清空
+            context.globalCompositeOperation = "source-over";
+            //画一个起点的圆圈
+            context.beginPath();
+            //设置圆的颜色属性
+            context.fillStyle = "rgba(255, 255, 255, 1)";
+            var ori_XYpos = map.lngLatToContainer(input_Marker.getPosition());
+            var ori_radius = time * speed / MperPixel;
+            context.arc(ori_XYpos.x, ori_XYpos.y, ori_radius, 0, 2 * Math.PI);
+            context.fill();
+
+            if (DT_count != 0 || GJ_count != 0) {
+                var large_index = getIndex(times, time);
+                for (var i = 0; i < large_index; i++) {
+                    //计算公式：（已进行的时间 - 到达该点需要的时间）*步行速度 除以 分辨率（x米/像素）
+                    radius = (time - times[i]) * speed / MperPixel;
+                    context.beginPath();
+                    context.arc(XYpos[i].x, XYpos[i].y, radius, 0, 2 * Math.PI);
+                    context.fill();
+                }
+            }
+            //画一个覆盖全部的黑影
+            context.globalCompositeOperation = "source-out";
+            context.fillStyle = "rgba(145, 148, 149, 1)"; // 设置黑影的颜色属性
+            context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        //确定是前几个需要绘制
+        function getIndex(times, time) {
+            for (var i = 0; i < times.length; i++) {
+                if (times[i] <= time) {
+                    continue;//第i个开始不用绘制，0 - (i-1)个是小于或等于time的，要绘制
+                }
+                return i;
+            }
+            return times.length - 1;
+        }
+
+        //设置滑条滑动的触发程序
+        window.setInterval(function () {
+            //防止在没有
+            //移动滑动条时频繁触发请
+            if (isChanged) {
+                time = $("#timeRange").val() * 60;
+                for (var i in input_Marker_array) {
+                    draw(canvas_array[i],input_Marker_array[i],times_array[i],XYpos_array[i])
+                }
+                isChanged = false;
+            }
+        }, 10);
+
+
+        //------------------------------------------------
+        //展示欢乐海岸路线
+        var huanlehaian = [['欢乐里椰子鸡音乐主题餐厅', 113.990914, 22.52185], ['游船', 113.991228, 22.522269], ['景观水池', 113.991901, 22.524011], ['西部华侨城旅游景区', 113.991515, 22.525032], ['景观喷泉', 113.990292, 22.524878]];
+        var huanlehaian_markers = [];
+        for (var i = 0; i < huanlehaian.length; i++) {
+            var marker = new AMap.Marker({
+                position: new AMap.LngLat(huanlehaian[i][1], huanlehaian[i][2])
+            });
+            marker.setLabel({//label默认蓝框白底左上角显示，样式className为：amap-marker-label
+                offset: new AMap.Pixel(-5, -20),//修改label相对于maker的位置
+                content: huanlehaian[i][0]
+            });
+            huanlehaian_markers.push(marker);
+
+        }
+        huanlehaian_markers[0].setIcon("https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png");
+        huanlehaian_markers[0].setLabel({//label默认蓝框白底左上角显示，样式className为：amap-marker-label
+            offset: new AMap.Pixel(-160, 5),//修改label相对于maker的位置
+            content: huanlehaian[0][0]
+        });
+
+        var huanle_canvas = document.createElement('canvas');
+        huanle_canvas.width = map.getSize().width;
+        huanle_canvas.height = map.getSize().height;
+        var huanle_context = huanle_canvas.getContext("2d");
+        var huanle_img = new Image();
+        huanle_img.src = 'pic/huanle.png';
+        var huanle_customLayer = new AMap.CustomLayer(huanle_canvas, {
+            opacity: 1,
+            zooms: [1, 18],
+            zIndex: 10
+        });
+        huanle_customLayer.render = huanle_onRender;
+        var huanle_lnglat_lefttop = new AMap.LngLat(113.982621, 22.526642);
+        var huanle_lnglat_rightbottom = new AMap.LngLat(113.993444, 22.520448);
+
+        function huanle_onRender() {
+            huanle_context.clearRect(0, 0, huanle_canvas.width, huanle_canvas.height);
+            var huanle_pixel_lefttop = map.lngLatToContainer(huanle_lnglat_lefttop);
+            var huanle_pixel_rightbottom = map.lngLatToContainer(huanle_lnglat_rightbottom);
+            var width = huanle_pixel_rightbottom.getX() - huanle_pixel_lefttop.getX();
+            var height = huanle_pixel_rightbottom.getY() - huanle_pixel_lefttop.getY();
+            huanle_context.drawImage(huanle_img, huanle_pixel_lefttop.getX(), huanle_pixel_lefttop.getY(), width, height);
+        }
+
+        var ishuanle = false;
+
+
+        var trans1, trans2;
+        AMap.service(["AMap.Transfer"], function () {
+            var transOptions = {
+                map: map,
+                city: '深圳',//公交城市
+                hideMarkers: true,
+                outlineColor: 'red',
+                autoFitView: false
+            };
+            //构造公交换乘类
+            trans1 = new AMap.Transfer(transOptions);
+            trans1.setPolicy(AMap.TransferPolicy.LEAST_TIME);
+            transOptions['outlineColor'] = 'green';
+            trans2 = new AMap.Transfer(transOptions);
+            trans2.setPolicy(AMap.TransferPolicy.LEAST_TIME);
+            trans2.leaveAt('23:20');
+
+        });
+
+        // var infoWindow_1;
+        // var info = [];
+        // info.push('<span style="font-size:11px;color:#F00;">启程：</span>');
+        // info.push("共需花费35分钟");
+
+        // infoWindow_1 = new AMap.InfoWindow({
+        //     content: info.join("")  //使用默认信息窗体框样式，显示信息内容
+        // });
+        // infoWindow_1.open(map, new AMap.LngLat(114.036262,22.545034));
+
+        // var infoWindow_2;
+        // info = [];
+        // info.push('<span style="font-size:11px;color:#0F0;">返程：</span>');
+        // info.push("共需花费30分钟");
+
+        // infoWindow_2 = new AMap.InfoWindow({
+        //     content: info.join("")  //使用默认信息窗体框样式，显示信息内容
+        // });
+        // infoWindow_2.open(map, new AMap.LngLat(114.009569,22.534173));
+
+        // var infoWindow_3;
+        // info = [];
+        // info.push('<span style="font-size:11px;color:#00F;">游玩：</span>');
+        // info.push("推荐游玩5个地点，大约需花费70分钟");
+
+        // infoWindow_3 = new AMap.InfoWindow({
+        //     content: info.join("")  //使用默认信息窗体框样式，显示信息内容
+        // });
+        // infoWindow_3.open(map, new AMap.LngLat(113.990429,22.526206));
+
+
+        var marker_1 = new AMap.Marker({
+            position: new AMap.LngLat(114.042781, 22.55397),
+            content: '<div style="background-color:#CD3333;width: 73px;font-size:10px;font-weight:bold;color:#FFF;padding:2px 5px 1px 5px;">去程45分钟</span></div>'
+        });
+
+        var marker_2 = new AMap.Marker({
+            position: new AMap.LngLat(114.008184, 22.533878),
+            content: '<div style="background-color:#00CED1;width: 73px;font-size:10px;font-weight:bold;color:#FFF;padding:2px 5px 1px 5px;">返程30分钟</span></div>'
+        });
+
+        var marker_3 = new AMap.Marker({
+            position: new AMap.LngLat(113.986453, 22.52205),
+            content: '<div style="background-color:#7CCD7C;width: 70px;font-size:10px;font-weight:bold;color:#FFF;padding:2px 5px 1px 5px;">游玩1小时</span></div>'
+        });
+
+        var marker_4 = new AMap.Marker({
+            position: new AMap.LngLat(113.984791, 22.518018),
+            content: '<div style="background-color:#EE7600;width: 70px;font-size:10px;font-weight:bold;color:#FFF;padding:2px 5px 1px 5px;">吃喝1小时</span></div>'
+        });
+
+
+    </script>
+</body>
+</html>
