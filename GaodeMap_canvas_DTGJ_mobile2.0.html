@@ -34,13 +34,13 @@
         div#huatiao {
             position: absolute;
             /*left: calc((100% - 525px)/2);*/
-            left: 2px;
+            left: 10px;
             width: 525px;
             height: 75px;
             bottom: 30px;
             background-color: rgba(255, 255, 255, 1);
             padding-left: 10px;
-            padding-right: 10px;
+            padding-right: 0px;
             font-size: 12px;
             border-radius: 3px;
             border: 1px solid #ccc;
@@ -198,7 +198,7 @@
         /*       重设起点按钮button      */
         /*-------------------------------*/
         #reset_ori, #cancel_reset_ori {
-            margin-left: 10px;
+            margin-left: 3px;
             padding: 1px;
             font-size: inherit;
         }
@@ -211,7 +211,7 @@
         /*       增加起点按钮button      */
         /*-------------------------------*/
         #add_ori, #cancel_add_ori {
-            margin-left: 0 px;
+            margin-left: 0px;
             padding: 1px;
             font-size: inherit;
         }
@@ -716,7 +716,7 @@
             $("#show_jingdian_btn").show();
             $("#show_xingcheng_btn").show();
             var slider_width = parseInt($(".slider-container.theme-green").css("width"));
-            $("#huatiao").css("width", (slider_width + 84) + "px");
+            $("#huatiao").css("width", (slider_width + 60) + "px");
         });
 
 
